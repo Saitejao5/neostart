@@ -30,12 +30,17 @@ def get_openrouter_response(
 ) -> str:
     """Send messages to OpenRouter and return the assistant reply."""
 
+    if not OPENROUTER_API_KEY or OPENROUTER_API_KEY.strip() == "":
+        raise ValueError("OPENROUTER_API_KEY is not set. Check your .env file.")
+
     try:
         url = f"{OPENROUTER_BASE_URL}/chat/completions"
 
         headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Authorization": f"Bearer {OPENROUTER_API_KEY.strip()}",
             "Content-Type": "application/json",
+            "HTTP-Referer": "https://scholarbot.local",  # OpenRouter requires a referer
+            "X-Title": "ScholarBot",
         }
 
         full_messages = [{"role": "system", "content": system_prompt}] + messages
@@ -47,13 +52,23 @@ def get_openrouter_response(
             "max_tokens": 2048,
         }
 
+        logger.info(f"Calling OpenRouter: {model}")
         response = requests.post(url, headers=headers, json=payload, timeout=60)
 
+        if response.status_code == 401:
+            logger.error(
+                "OpenRouter auth failed (401). Check your API key in .env file. "
+                f"Key starts with: {OPENROUTER_API_KEY[:20]}..."
+            )
+        
         response.raise_for_status()
         data = response.json()
 
         return data["choices"][0]["message"]["content"]
 
+    except requests.exceptions.HTTPError as exc:
+        logger.error("OpenRouter HTTP error: %s - %s", exc.response.status_code, exc.response.text)
+        raise
     except Exception as exc:
         logger.error("OpenRouter API error: %s", exc)
         raise

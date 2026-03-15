@@ -6,12 +6,22 @@ Never commit real API keys to version control.
 """
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# ── Load .env from project root (robust path handling) ──────────────────────────
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=env_path, override=True)
 
 # ── LLM Provider (OpenRouter Only) ─────────────────────────────────────────────
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
+
+# Validate API key exists
+if not OPENROUTER_API_KEY:
+    raise ValueError(
+        "ERROR: OPENROUTER_API_KEY not found in .env file. "
+        "Please ensure .env exists in the project root with your OpenRouter API key."
+    )
 
 # Default model used through OpenRouter
 OPENROUTER_MODEL = os.getenv(

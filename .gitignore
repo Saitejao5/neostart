@@ -9,7 +9,8 @@ __pycache__/
 .venv/
 venv/
 env/
-
+.env
+.env.example
 # Data (vector store — rebuilt on deploy)
 data/vectorstore/
 
