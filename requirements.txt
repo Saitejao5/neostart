@@ -13,3 +13,5 @@ numpy>=1.26.0
 # Web Search
 requests>=2.31.0
 duckduckgo-search>=6.1.0
+
+faiss-cpu
